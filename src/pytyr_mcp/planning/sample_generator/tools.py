@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 from fastmcp import FastMCP
 
 from pytyr_mcp.config import ServerConfig
+from pytyr_mcp.paths import server_output_dir
 from pytyr_mcp.planning.sample_generator.results import describe_generator_result, sample_generator_result
 from pytyr_mcp.planning.sample_generator.service import SampleGeneratorOptions, describe_make_problem, get_generator_path, sample_generator
 
@@ -14,7 +14,6 @@ DESCRIBE_TOOL_NAME = "tyr.planning.describe_generator"
 
 
 def register_tools(mcp: FastMCP, config: ServerConfig) -> None:
-    del config
 
     @mcp.tool(name=DESCRIBE_TOOL_NAME)
     def describe_generator(domain_name: str) -> dict[str, Any]:
@@ -37,7 +36,7 @@ def register_tools(mcp: FastMCP, config: ServerConfig) -> None:
         result = sample_generator(
             SampleGeneratorOptions(
                 domain_name=domain_name,
-                output_dir=Path(output_dir).resolve(),
+                output_dir=server_output_dir(config.output_root, output_dir),
                 batch_name=batch_name,
                 configs=configs,
                 allow_invalid=allow_invalid,

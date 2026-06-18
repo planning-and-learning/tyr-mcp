@@ -23,6 +23,7 @@ dev = [
 ]
 
 [project.scripts]
+pytyr-mcp-invoke = "pytyr_mcp.invoke:main"
 pytyr-mcp = "pytyr_mcp.server:main"
 
 [tool.hatch.build.targets.wheel]

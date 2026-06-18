@@ -5,13 +5,13 @@ from typing import Any
 from fastmcp import FastMCP
 
 from pytyr_mcp.config import ServerConfig
+from pytyr_mcp.paths import server_output_dir
 from pytyr_mcp.planning.solvability.schemas import ProveSolvabilityOptions
 from pytyr_mcp.planning.solvability.service import TOOL_NAME
 from pytyr_mcp.planning.solvability.service import prove_solvability as run_prove_solvability
 
 
 def register_tools(mcp: FastMCP, config: ServerConfig) -> None:
-    del config
 
     @mcp.tool(name=TOOL_NAME)
     def prove_solvability(
@@ -28,7 +28,7 @@ def register_tools(mcp: FastMCP, config: ServerConfig) -> None:
             ProveSolvabilityOptions(
                 domain=domain,
                 problem_dir=problem_dir,
-                output_dir=output_dir,
+                output_dir=server_output_dir(config.output_root, output_dir).as_posix(),
                 num_threads=num_threads,
                 max_num_states=max_num_states,
                 max_time_seconds=max_time_seconds,

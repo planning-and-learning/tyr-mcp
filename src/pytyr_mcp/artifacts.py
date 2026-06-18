@@ -9,7 +9,53 @@ from pytyr_mcp.paths import relative_to
 
 def write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    with path.open("x", encoding="utf-8") as fh:
+        fh.write(json.dumps(data, indent=2, sort_keys=True) + "\n")
+
+
+RESERVATION_MARKER = ".pytyr-mcp-output"
+
+
+def has_existing_output(output_dir: Path) -> bool:
+    return any(
+        (output_dir / name).exists()
+        for name in (RESERVATION_MARKER, "summary.json", "summary.md", "raw", "tasks", "domain.pddl")
+    )
+
+
+def _reserve_output_dir(output_dir: Path) -> bool:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    if has_existing_output(output_dir):
+        return False
+    try:
+        with (output_dir / RESERVATION_MARKER).open("x", encoding="utf-8") as fh:
+            fh.write("reserved\n")
+    except FileExistsError:
+        return False
+    return True
+
+
+def fresh_output_dir(output_dir: Path) -> Path:
+    if _reserve_output_dir(output_dir):
+        return output_dir
+    for index in range(2, 10000):
+        candidate = output_dir / f"run-{index:03d}"
+        if _reserve_output_dir(candidate):
+            return candidate
+    raise RuntimeError(f"could not allocate fresh Tyr MCP output directory under {output_dir}")
+
+
+def _summary_task_path(task: dict[str, Any], output_dir: Path) -> str:
+    raw_path = task.get("path")
+    if raw_path is None:
+        return ""
+    path = Path(str(raw_path))
+    if not path.is_absolute():
+        return path.as_posix()
+    try:
+        return path.relative_to(output_dir).as_posix()
+    except ValueError:
+        return "<omitted: outside output_dir>"
 
 
 def write_solvability_summary(
@@ -22,11 +68,13 @@ def write_solvability_summary(
     stdout: str = "",
     stderr: str = "",
 ) -> dict[str, Any]:
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = fresh_output_dir(output_dir)
     raw_dir = output_dir / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
-    (raw_dir / "stdout.txt").write_text(stdout, encoding="utf-8")
-    (raw_dir / "stderr.txt").write_text(stderr, encoding="utf-8")
+    with (raw_dir / "stdout.txt").open("x", encoding="utf-8") as fh:
+        fh.write(stdout)
+    with (raw_dir / "stderr.txt").open("x", encoding="utf-8") as fh:
+        fh.write(stderr)
 
     by_status: dict[str, list[dict[str, Any]]] = {}
     for task in tasks:
@@ -38,6 +86,7 @@ def write_solvability_summary(
         task_id = f"task-{index:03d}"
         task_path = task_dir / f"{task_id}.json"
         task_data = dict(task)
+        task_data["path"] = _summary_task_path(task, output_dir)
         task_data.setdefault("schema_version", 1)
         task_data.setdefault("id", task_id)
         write_json(task_path, task_data)
@@ -67,7 +116,7 @@ def write_solvability_summary(
                 "tasks": [
                     {
                         "name": task["name"],
-                        "path": task["path"],
+                        "path": _summary_task_path(task, output_dir),
                         "plan_length": task.get("plan_length"),
                     }
                     for task in values
@@ -131,4 +180,5 @@ def write_solvability_markdown(path: Path, summary: dict[str, Any]) -> None:
     ]
     for item in summary["tasks"]:
         lines.append(f"- `{item['name']}`: `{item['status']}` (`{item['path']}`)")
-    path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+    with path.open("x", encoding="utf-8") as fh:
+        fh.write("\n".join(lines).rstrip() + "\n")

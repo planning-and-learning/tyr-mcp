@@ -16,6 +16,7 @@ from pytyr_mcp.planning.sample_generator.service import (
 )
 from pytyr_mcp.planning.solvability.schemas import ProveSolvabilityOptions
 from pytyr_mcp.planning.solvability.service import prove_solvability
+from pytyr_mcp.roles import load_role
 
 
 def _sample(args: dict[str, Any]) -> dict[str, Any]:
@@ -61,12 +62,33 @@ TOOLS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
 }
 
 
+def _write_result_json(path: Path, rendered: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("x", encoding="utf-8") as fh:
+        fh.write(rendered)
+
+
+def _ensure_tool_allowed(tool_name: str) -> None:
+    role = load_role()
+    if role.allows(tool_name):
+        return
+    allowed = ", ".join(sorted(role.allowed_tools))
+    raise PermissionError(
+        f"{tool_name} is not allowed for PYTYR_MCP_ROLE={role.name}; "
+        f"allowed tools: {allowed}"
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Invoke a pytyr-mcp tool with JSON arguments.")
     parser.add_argument("tool", choices=sorted(TOOLS))
     parser.add_argument("--args-json", required=True)
     parser.add_argument("--result-json")
     parsed = parser.parse_args()
+    try:
+        _ensure_tool_allowed(parsed.tool)
+    except (PermissionError, ValueError) as exc:
+        parser.error(str(exc))
     args = json.loads(parsed.args_json)
     if not isinstance(args, dict):
         raise TypeError("--args-json must decode to an object")
@@ -79,8 +101,7 @@ def main() -> None:
     rendered = json.dumps(result, indent=2, sort_keys=True) + "\n"
     if parsed.result_json:
         result_path = Path(parsed.result_json).resolve()
-        result_path.parent.mkdir(parents=True, exist_ok=True)
-        result_path.write_text(rendered, encoding="utf-8")
+        _write_result_json(result_path, rendered)
     else:
         print(rendered, end="")
 

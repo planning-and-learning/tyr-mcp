@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import importlib.util
 import os
+import re
 import inspect
 import json
 import shutil
@@ -11,7 +12,15 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
+from pytyr_mcp.artifacts import fresh_output_dir
+from pytyr_mcp.paths import relative_to
 
+
+_BATCH_NAME_RE = re.compile(r"[^A-Za-z0-9_-]+")
+
+
+def _batch_slug(batch_name: str) -> str:
+    return _BATCH_NAME_RE.sub("_", str(batch_name)).strip("_") or "batch"
 
 
 def benchmark_root() -> Path:
@@ -94,6 +103,26 @@ def describe_make_problem(domain_name: str) -> str:
     return str(inspect.signature(make_problem))
 
 
+def _reserve_problem_dir(path: Path) -> bool:
+    try:
+        path.mkdir(parents=True, exist_ok=False)
+    except FileExistsError:
+        return path.is_dir() and not any(path.iterdir())
+    return True
+
+
+def _fresh_problem_dir(output_dir: Path, batch_name: str) -> Path:
+    slug = _batch_slug(batch_name)
+    problem_dir = output_dir / slug
+    if _reserve_problem_dir(problem_dir):
+        return problem_dir
+    for index in range(2, 10000):
+        candidate = output_dir / f"{slug}-{index:03d}"
+        if _reserve_problem_dir(candidate):
+            return candidate
+    raise RuntimeError(f"could not allocate fresh sample batch directory under {output_dir}")
+
+
 def sample_generator(options: SampleGeneratorOptions) -> SampleGeneratorResult:
     make_problem = load_make_problem(options.domain_name)
     signature = str(inspect.signature(make_problem))
@@ -102,18 +131,16 @@ def sample_generator(options: SampleGeneratorOptions) -> SampleGeneratorResult:
     if not source_domain_path.exists():
         raise FileNotFoundError(f"Generator domain not found: {source_domain_path}")
 
-    output_dir = options.output_dir
-    problem_dir = output_dir / options.batch_name
-    output_dir.mkdir(parents=True, exist_ok=True)
-    problem_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = fresh_output_dir(options.output_dir)
+    batch_slug = _batch_slug(options.batch_name)
+    problem_dir = _fresh_problem_dir(output_dir, batch_slug)
 
     domain_path = output_dir / "domain.pddl"
-    shutil.copyfile(source_domain_path, domain_path)
+    with source_domain_path.open("rb") as source, domain_path.open("xb") as target:
+        shutil.copyfileobj(source, target)
 
     generated: list[GeneratedProblem] = []
     invalid: list[InvalidGeneratorConfig] = []
-    for path in problem_dir.glob("*.pddl"):
-        path.unlink()
 
     for index, config in enumerate(options.configs, start=1):
         config_dict = dict(config)
@@ -128,8 +155,9 @@ def sample_generator(options: SampleGeneratorOptions) -> SampleGeneratorResult:
                 continue
             break
 
-        problem_path = problem_dir / f"{options.batch_name}-{index:03d}.pddl"
-        problem_path.write_text(problem, encoding="utf-8")
+        problem_path = problem_dir / f"{batch_slug}-{index:03d}.pddl"
+        with problem_path.open("x", encoding="utf-8") as fh:
+            fh.write(problem)
         generated.append(GeneratedProblem(index=index, path=problem_path, config=config_dict))
 
     metadata_path = problem_dir / "configs.json"
@@ -138,7 +166,7 @@ def sample_generator(options: SampleGeneratorOptions) -> SampleGeneratorResult:
         "generator_path": str(generator_path),
         "signature": signature,
         "generated": [
-            {"index": problem.index, "path": str(problem.path), "config": problem.config}
+            {"index": problem.index, "path": relative_to(problem.path, output_dir), "config": problem.config}
             for problem in generated
         ],
         "invalid": [
@@ -146,7 +174,8 @@ def sample_generator(options: SampleGeneratorOptions) -> SampleGeneratorResult:
             for item in invalid
         ],
     }
-    metadata_path.write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    with metadata_path.open("x", encoding="utf-8") as fh:
+        fh.write(json.dumps(metadata, indent=2, sort_keys=True) + "\n")
 
     return SampleGeneratorResult(
         domain_path=domain_path,

@@ -21,7 +21,6 @@ from pytyr.planning.lifted import (
 
 from pytyr_mcp.artifacts import write_solvability_summary
 from pytyr_mcp.planning.solvability.schemas import ProveSolvabilityOptions
-from pytyr_mcp.paths import relative_to
 
 TOOL_NAME = "tyr.planning.prove_solvability"
 
@@ -100,9 +99,6 @@ def prove_solvability(options: ProveSolvabilityOptions) -> dict[str, Any]:
                 flush=True,
             )
             tasks.append(task)
-
-    for task in tasks:
-        task["path"] = relative_to(Path(task["path"]), output_dir)
 
     return write_solvability_summary(
         tool=TOOL_NAME,

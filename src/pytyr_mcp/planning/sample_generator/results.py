@@ -10,7 +10,8 @@ from pytyr_mcp.planning.sample_generator.service import SampleGeneratorResult
 
 def _write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    with path.open("x", encoding="utf-8") as fh:
+        fh.write(json.dumps(data, indent=2, sort_keys=True) + "\n")
 
 
 def _write_sample_markdown(path: Path, summary: dict[str, Any]) -> None:
@@ -35,7 +36,8 @@ def _write_sample_markdown(path: Path, summary: dict[str, Any]) -> None:
         lines.extend(["", "## Invalid Configs", ""])
         for item in summary["invalid"]:
             lines.append(f"- index {item['index']}: {item['reason']}")
-    path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+    with path.open("x", encoding="utf-8") as fh:
+        fh.write("\n".join(lines).rstrip() + "\n")
 
 
 def describe_generator_result(*, domain_name: str, generator_path: Path, signature: str) -> dict[str, Any]:
@@ -67,12 +69,13 @@ def describe_generator_result(*, domain_name: str, generator_path: Path, signatu
 
 
 def sample_generator_result(result: SampleGeneratorResult) -> dict[str, Any]:
+    output_dir = result.domain_path.parent
     generated = [
         {
             "kind": "generated_problem",
             "index": item.index,
             "name": item.path.name,
-            "path": item.path.as_posix(),
+            "path": relative_to(item.path, output_dir),
             "config": item.config,
         }
         for item in result.generated
@@ -108,7 +111,6 @@ def sample_generator_result(result: SampleGeneratorResult) -> dict[str, Any]:
         "generated": generated,
         "invalid": invalid,
     }
-    output_dir = result.domain_path.parent
     summary_json = output_dir / "summary.json"
     summary_md = output_dir / "summary.md"
     _write_json(summary_json, summary)
@@ -134,6 +136,7 @@ def sample_generator_result(result: SampleGeneratorResult) -> dict[str, Any]:
         "counts": summary["counts"],
         "summary_path": artifacts["summary_json"],
         "summary_md_path": artifacts["summary_md"],
+        "output_dir": artifacts["output_dir"],
         "domain_path": result.domain_path.as_posix(),
         "problem_dir": result.problem_dir.as_posix(),
         "generator_path": result.generator_path.as_posix(),
