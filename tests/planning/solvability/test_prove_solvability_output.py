@@ -35,6 +35,11 @@ def test_prove_solvability_summary_links_task_files(tmp_path):
     )
 
     assert result["counts"] == {"tasks": 2, "solved": 1, "unsolved": 1, "statuses": 2}
+    assert result["primary"]["prompt_summary"] == result["prompt_summary"]
+    assert result["prompt_summary"]["counts"] == result["counts"]
+    assert result["prompt_summary"]["summary_md"] == "summary.md"
+    assert result["prompt_summary"]["unsolved"] == ["p02.pddl"]
+    assert "items" not in result["prompt_summary"]
     summary = json.loads((tmp_path / "summary.json").read_text())
     task_path = tmp_path / summary["tasks"][1]["path"]
     task = json.loads(task_path.read_text())

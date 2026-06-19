@@ -132,19 +132,34 @@ def write_solvability_summary(
     }
     write_json(output_dir / "summary.json", summary)
     write_solvability_markdown(output_dir / "summary.md", summary)
-    primary = {
-        "successful": status == "success",
-        "all_solved": status == "success",
-        "solved": [task["name"] for task in tasks if task.get("solved")],
-        "unsolved": [task["name"] for task in tasks if not task.get("solved")],
-        "task_statuses": [(task["name"], task["status"]) for task in tasks],
-    }
     artifacts = {
         "summary_json": relative_to(output_dir / "summary.json", output_dir),
         "summary_md": relative_to(output_dir / "summary.md", output_dir),
         "raw_stdout": "raw/stdout.txt",
         "raw_stderr": "raw/stderr.txt",
         "output_dir": output_dir.as_posix(),
+    }
+    task_statuses = [(task["name"], task["status"]) for task in tasks]
+    prompt_summary = {
+        "tool": tool,
+        "status": status,
+        "successful": status == "success",
+        "output_dir": output_dir.as_posix(),
+        "summary_json": artifacts["summary_json"],
+        "summary_md": artifacts["summary_md"],
+        "counts": summary["counts"],
+        "task_statuses": task_statuses,
+        "solved": [task["name"] for task in tasks if task.get("solved")],
+        "unsolved": [task["name"] for task in tasks if not task.get("solved")],
+        "note": "Detailed per-task solvability records are written under output_dir; start with summary_md/summary_json.",
+    }
+    primary = {
+        "successful": status == "success",
+        "all_solved": status == "success",
+        "solved": prompt_summary["solved"],
+        "unsolved": prompt_summary["unsolved"],
+        "task_statuses": task_statuses,
+        "prompt_summary": prompt_summary,
     }
     return {
         "schema_version": summary["schema_version"],
@@ -153,6 +168,7 @@ def write_solvability_summary(
         "primary": primary,
         "summary": summary,
         "artifacts": artifacts,
+        "prompt_summary": prompt_summary,
         "items": task_items,
         "tasks": summary["tasks"],
         "summary_path": artifacts["summary_json"],

@@ -41,11 +41,20 @@ def _write_sample_markdown(path: Path, summary: dict[str, Any]) -> None:
 
 
 def describe_generator_result(*, domain_name: str, generator_path: Path, signature: str) -> dict[str, Any]:
+    prompt_summary = {
+        "tool": "tyr.planning.describe_generator",
+        "status": "success",
+        "successful": True,
+        "domain_name": domain_name,
+        "generator_path": generator_path.as_posix(),
+        "signature": signature,
+    }
     primary = {
         "successful": True,
         "domain_name": domain_name,
         "generator_path": generator_path.as_posix(),
         "signature": signature,
+        "prompt_summary": prompt_summary,
     }
     return {
         "schema_version": 1,
@@ -62,6 +71,7 @@ def describe_generator_result(*, domain_name: str, generator_path: Path, signatu
         },
         "items": [],
         "artifacts": {"generator_path": generator_path.as_posix()},
+        "prompt_summary": prompt_summary,
         "domain_name": domain_name,
         "generator_path": generator_path.as_posix(),
         "signature": signature,
@@ -124,6 +134,21 @@ def sample_generator_result(result: SampleGeneratorResult) -> dict[str, Any]:
         "configs_json": relative_to(result.problem_dir / "configs.json", output_dir),
         "output_dir": output_dir.as_posix(),
     }
+    prompt_summary = {
+        "tool": "tyr.planning.sample_generator",
+        "status": status,
+        "successful": result.is_successful,
+        "output_dir": artifacts["output_dir"],
+        "summary_json": artifacts["summary_json"],
+        "summary_md": artifacts["summary_md"],
+        "domain_path": artifacts["domain_path"],
+        "problem_dir": artifacts["problem_dir"],
+        "counts": summary["counts"],
+        "generated": [item["name"] for item in generated],
+        "invalid_count": len(invalid),
+        "note": "Generated PDDL tasks and configs are written under problem_dir/output_dir; start with summary_md/summary_json.",
+    }
+    primary["prompt_summary"] = prompt_summary
     return {
         "schema_version": 1,
         "tool": "tyr.planning.sample_generator",
@@ -131,6 +156,7 @@ def sample_generator_result(result: SampleGeneratorResult) -> dict[str, Any]:
         "primary": primary,
         "summary": summary,
         "artifacts": artifacts,
+        "prompt_summary": prompt_summary,
         "items": generated,
         "diagnostics": invalid,
         "counts": summary["counts"],

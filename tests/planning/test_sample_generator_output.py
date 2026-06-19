@@ -53,6 +53,11 @@ def test_sample_generator_result_writes_summary_and_indexes_artifacts(tmp_path):
     assert "absolute_path" not in summary["generated"][0]
     assert result["items"] == summary["generated"]
     assert result["diagnostics"] == summary["invalid"]
+    assert result["primary"]["prompt_summary"] == result["prompt_summary"]
+    assert result["prompt_summary"]["counts"] == {"generated": 1, "invalid": 1}
+    assert result["prompt_summary"]["summary_md"] == "summary.md"
+    assert result["prompt_summary"]["generated"] == ["batch-001.pddl"]
+    assert "items" not in result["prompt_summary"]
 
 
 def test_sample_generator_result_refuses_existing_summary_json(tmp_path):
