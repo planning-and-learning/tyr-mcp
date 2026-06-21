@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from fastmcp import FastMCP
 
 from pytyr_mcp.config import ServerConfig
@@ -22,7 +20,7 @@ def register_tools(mcp: FastMCP, config: ServerConfig) -> None:
         max_num_states: int = 100_000,
         max_time_seconds: float = 5.0,
         include_plans: bool = False,
-    ) -> dict[str, Any]:
+    ) -> dict:
         """Prove PDDL task solvability with pytyr lifted GBFS lazy search and hFF."""
         return run_prove_solvability(
             ProveSolvabilityOptions(

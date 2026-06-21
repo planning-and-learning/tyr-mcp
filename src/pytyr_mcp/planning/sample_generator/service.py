@@ -7,12 +7,12 @@ import re
 import inspect
 import json
 import shutil
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from types import ModuleType
-from typing import Any
+from types import FunctionType, ModuleType
 
 from pytyr_mcp.artifacts import fresh_output_dir
+from pytyr_mcp.json_types import JsonObject, JsonValue
 from pytyr_mcp.paths import relative_to
 
 
@@ -35,14 +35,16 @@ def generator_root() -> Path:
 class GeneratedProblem:
     index: int
     path: Path
-    config: dict[str, Any]
+    config: JsonObject
 
 
 @dataclass(frozen=True)
 class InvalidGeneratorConfig:
     index: int
-    config: dict[str, Any]
+    config: JsonObject
     reason: str
+    error_type: str = "Error"
+    error_category: str = "invalid_config"
 
 
 @dataclass(frozen=True)
@@ -50,7 +52,7 @@ class SampleGeneratorOptions:
     domain_name: str
     output_dir: Path
     batch_name: str
-    configs: Sequence[Mapping[str, Any]]
+    configs: Sequence[Mapping[str, JsonValue]]
     allow_invalid: bool = False
 
 
@@ -90,17 +92,30 @@ def load_generator_module(domain_name: str) -> ModuleType:
     return module
 
 
-def load_make_problem(domain_name: str) -> Callable[..., str | None]:
+
+def load_make_problem(domain_name: str) -> FunctionType:
     module = load_generator_module(domain_name)
     make_problem = getattr(module, "make_problem", None)
-    if not callable(make_problem):
-        raise AttributeError(f"{get_generator_path(domain_name)} does not define callable make_problem")
+    if not isinstance(make_problem, FunctionType):
+        raise AttributeError(f"{get_generator_path(domain_name)} does not define make_problem as a function")
     return make_problem
 
 
-def describe_make_problem(domain_name: str) -> str:
-    make_problem = load_make_problem(domain_name)
+
+def _generator_signature(make_problem: FunctionType) -> str:
     return str(inspect.signature(make_problem))
+
+
+def _call_generator(make_problem: FunctionType, config: Mapping[str, JsonValue]) -> str:
+    result = make_problem(**dict(config))
+    if result is None:
+        raise ValueError("make_problem returned None")
+    if not isinstance(result, str):
+        raise TypeError(f"make_problem returned {type(result).__name__}, expected str")
+    return result
+
+def describe_make_problem(domain_name: str) -> str:
+    return _generator_signature(load_make_problem(domain_name))
 
 
 def _reserve_problem_dir(path: Path) -> bool:
@@ -123,9 +138,10 @@ def _fresh_problem_dir(output_dir: Path, batch_name: str) -> Path:
     raise RuntimeError(f"could not allocate fresh sample batch directory under {output_dir}")
 
 
+
 def sample_generator(options: SampleGeneratorOptions) -> SampleGeneratorResult:
     make_problem = load_make_problem(options.domain_name)
-    signature = str(inspect.signature(make_problem))
+    signature = _generator_signature(make_problem)
     generator_path = get_generator_path(options.domain_name)
     source_domain_path = get_generator_domain_path(options.domain_name)
     if not source_domain_path.exists():
@@ -145,11 +161,15 @@ def sample_generator(options: SampleGeneratorOptions) -> SampleGeneratorResult:
     for index, config in enumerate(options.configs, start=1):
         config_dict = dict(config)
         try:
-            problem = make_problem(**config_dict)
-            if problem is None:
-                raise ValueError("make_problem returned None")
+            problem = _call_generator(make_problem, config_dict)
         except Exception as exc:  # noqa: BLE001 - report generator feedback to the outer loop.
-            invalid_config = InvalidGeneratorConfig(index=index, config=config_dict, reason=str(exc))
+            invalid_config = InvalidGeneratorConfig(
+                index=index,
+                config=config_dict,
+                reason=str(exc),
+                error_type=type(exc).__name__,
+                error_category="invalid_config" if isinstance(exc, TypeError | ValueError) else "generator_error",
+            )
             invalid.append(invalid_config)
             if options.allow_invalid:
                 continue
@@ -170,7 +190,13 @@ def sample_generator(options: SampleGeneratorOptions) -> SampleGeneratorResult:
             for problem in generated
         ],
         "invalid": [
-            {"index": item.index, "config": item.config, "reason": item.reason}
+            {
+                "index": item.index,
+                "config": item.config,
+                "reason": item.reason,
+                "error_type": item.error_type,
+                "error_category": item.error_category,
+            }
             for item in invalid
         ],
     }

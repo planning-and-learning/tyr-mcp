@@ -5,8 +5,10 @@ import io
 import json
 from contextlib import redirect_stdout
 from pathlib import Path
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import TypeAlias
 
+from pytyr_mcp.json_types import JsonObject, JsonValue
 from pytyr_mcp.planning.sample_generator.results import describe_generator_result, sample_generator_result
 from pytyr_mcp.planning.sample_generator.service import (
     SampleGeneratorOptions,
@@ -19,21 +21,85 @@ from pytyr_mcp.planning.solvability.service import prove_solvability
 from pytyr_mcp.roles import load_role
 
 
-def _sample(args: dict[str, Any]) -> dict[str, Any]:
+ToolResult: TypeAlias = JsonObject
+
+
+class Args:
+    def __init__(self, values: JsonObject) -> None:
+        self.values = values
+
+    def value(self, key: str, default: JsonValue | None = None) -> JsonValue | None:
+        return self.values[key] if key in self.values else default
+
+    def string(self, key: str, default: str | None = None) -> str:
+        value = self.value(key, default)
+        if not isinstance(value, str):
+            raise TypeError(f"{key} must be a string")
+        return value
+
+    def integer(self, key: str, default: int) -> int:
+        value = self.value(key, default)
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise TypeError(f"{key} must be an integer")
+        return value
+
+    def number(self, key: str, default: float) -> float:
+        value = self.value(key, default)
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            raise TypeError(f"{key} must be a number")
+        return float(value)
+
+    def number_alias(self, key: str, alias: str, default: float) -> float:
+        return self.number(key, default) if key in self.values else self.number(alias, default)
+
+    def boolean(self, key: str, default: bool) -> bool:
+        value = self.value(key, default)
+        if not isinstance(value, bool):
+            raise TypeError(f"{key} must be a boolean")
+        return value
+
+    def boolean_alias(self, key: str, alias: str, default: bool) -> bool:
+        return self.boolean(key, default) if key in self.values else self.boolean(alias, default)
+
+    def path(self, key: str) -> Path:
+        return Path(self.string(key)).resolve()
+
+    def configs(self, key: str) -> list[JsonObject]:
+        value = self.value(key, [])
+        if not isinstance(value, list):
+            raise TypeError(f"{key} must be a list of objects")
+        configs: list[JsonObject] = []
+        for index, item in enumerate(value, start=1):
+            if not isinstance(item, dict) or not all(isinstance(item_key, str) for item_key in item):
+                raise TypeError(f"{key}[{index}] must be an object with string keys")
+            configs.append(dict(item))
+        return configs
+
+
+ToolHandler: TypeAlias = Callable[[Args], ToolResult]
+
+
+def _args(args: Args | JsonObject) -> Args:
+    return args if isinstance(args, Args) else Args(args)
+
+
+def _sample(args: Args | JsonObject) -> ToolResult:
+    args = _args(args)
     result = sample_generator(
         SampleGeneratorOptions(
-            domain_name=args["domain_name"],
-            output_dir=Path(args["output_dir"]).resolve(),
-            batch_name=args.get("batch_name", "sample"),
-            configs=args.get("configs", []),
-            allow_invalid=bool(args.get("allow_invalid", False)),
+            domain_name=args.string("domain_name"),
+            output_dir=args.path("output_dir"),
+            batch_name=args.string("batch_name", "sample"),
+            configs=args.configs("configs"),
+            allow_invalid=args.boolean("allow_invalid", False),
         )
     )
     return sample_generator_result(result)
 
 
-def _describe(args: dict[str, Any]) -> dict[str, Any]:
-    domain_name = args["domain_name"]
+def _describe(args: Args | JsonObject) -> ToolResult:
+    args = _args(args)
+    domain_name = args.string("domain_name")
     return describe_generator_result(
         domain_name=domain_name,
         generator_path=get_generator_path(domain_name),
@@ -41,21 +107,22 @@ def _describe(args: dict[str, Any]) -> dict[str, Any]:
     )
 
 
-def _solvability(args: dict[str, Any]) -> dict[str, Any]:
+def _solvability(args: Args | JsonObject) -> ToolResult:
+    args = _args(args)
     return prove_solvability(
         ProveSolvabilityOptions(
-            domain=args["domain"],
-            problem_dir=args["problem_dir"],
-            output_dir=args["output_dir"],
-            num_threads=int(args.get("num_threads", 1)),
-            max_num_states=int(args.get("max_num_states", 100_000)),
-            max_time_seconds=float(args.get("max_time_seconds", args.get("max_time", 5.0))),
-            include_plans=bool(args.get("include_plans", args.get("print_plan", False))),
+            domain=args.string("domain"),
+            problem_dir=args.string("problem_dir"),
+            output_dir=args.string("output_dir"),
+            num_threads=args.integer("num_threads", 1),
+            max_num_states=args.integer("max_num_states", 100_000),
+            max_time_seconds=args.number_alias("max_time_seconds", "max_time", 5.0),
+            include_plans=args.boolean_alias("include_plans", "print_plan", False),
         )
     )
 
 
-TOOLS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
+TOOLS: dict[str, ToolHandler] = {
     "tyr.planning.describe_generator": _describe,
     "tyr.planning.sample_generator": _sample,
     "tyr.planning.prove_solvability": _solvability,
@@ -94,7 +161,7 @@ def main() -> None:
         raise TypeError("--args-json must decode to an object")
     captured_stdout = io.StringIO()
     with redirect_stdout(captured_stdout):
-        result = TOOLS[parsed.tool](args)
+        result = TOOLS[parsed.tool](Args(args))
     tool_stdout = captured_stdout.getvalue()
     if tool_stdout:
         result = {**result, "_tool_stdout": tool_stdout}

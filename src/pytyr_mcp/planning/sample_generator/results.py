@@ -2,19 +2,19 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
 
+from pytyr_mcp.json_types import JsonDictList, JsonObject, JsonValue
 from pytyr_mcp.paths import relative_to
 from pytyr_mcp.planning.sample_generator.service import SampleGeneratorResult
 
 
-def _write_json(path: Path, data: Any) -> None:
+def _write_json(path: Path, data: JsonValue) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("x", encoding="utf-8") as fh:
         fh.write(json.dumps(data, indent=2, sort_keys=True) + "\n")
 
 
-def _write_sample_markdown(path: Path, summary: dict[str, Any]) -> None:
+def _write_sample_markdown(path: Path, summary: JsonObject) -> None:
     lines = [
         f"# {summary['tool']}",
         "",
@@ -40,7 +40,7 @@ def _write_sample_markdown(path: Path, summary: dict[str, Any]) -> None:
         fh.write("\n".join(lines).rstrip() + "\n")
 
 
-def describe_generator_result(*, domain_name: str, generator_path: Path, signature: str) -> dict[str, Any]:
+def describe_generator_result(*, domain_name: str, generator_path: Path, signature: str) -> JsonObject:
     prompt_summary = {
         "tool": "tyr.planning.describe_generator",
         "status": "success",
@@ -78,9 +78,9 @@ def describe_generator_result(*, domain_name: str, generator_path: Path, signatu
     }
 
 
-def sample_generator_result(result: SampleGeneratorResult) -> dict[str, Any]:
+def sample_generator_result(result: SampleGeneratorResult) -> JsonObject:
     output_dir = result.domain_path.parent
-    generated = [
+    generated: JsonDictList = [
         {
             "kind": "generated_problem",
             "index": item.index,
@@ -90,12 +90,14 @@ def sample_generator_result(result: SampleGeneratorResult) -> dict[str, Any]:
         }
         for item in result.generated
     ]
-    invalid = [
+    invalid: JsonDictList = [
         {
-            "kind": "invalid_config",
+            "kind": item.error_category,
             "index": item.index,
             "config": item.config,
             "reason": item.reason,
+            "error_type": item.error_type,
+            "error_category": item.error_category,
         }
         for item in result.invalid
     ]

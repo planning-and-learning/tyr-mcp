@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from fastmcp import FastMCP
 
 from pytyr_mcp.config import ServerConfig
@@ -16,7 +14,7 @@ DESCRIBE_TOOL_NAME = "tyr.planning.describe_generator"
 def register_tools(mcp: FastMCP, config: ServerConfig) -> None:
 
     @mcp.tool(name=DESCRIBE_TOOL_NAME)
-    def describe_generator(domain_name: str) -> dict[str, Any]:
+    def describe_generator(domain_name: str) -> dict:
         """Return the make_problem signature and source path for a planning benchmark generator."""
         return describe_generator_result(
             domain_name=domain_name,
@@ -29,9 +27,9 @@ def register_tools(mcp: FastMCP, config: ServerConfig) -> None:
         domain_name: str,
         output_dir: str,
         batch_name: str,
-        configs: list[dict[str, Any]],
+        configs: list[dict],
         allow_invalid: bool = False,
-    ) -> dict[str, Any]:
+    ) -> dict:
         """Generate PDDL sample problems from a planning benchmark generator."""
         result = sample_generator(
             SampleGeneratorOptions(

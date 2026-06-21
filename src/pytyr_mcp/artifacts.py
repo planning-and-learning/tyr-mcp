@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
-
+from pytyr_mcp.json_types import JsonDictList, JsonObject, JsonValue
 from pytyr_mcp.paths import relative_to
 
 
-def write_json(path: Path, data: Any) -> None:
+def write_json(path: Path, data: JsonValue) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("x", encoding="utf-8") as fh:
         fh.write(json.dumps(data, indent=2, sort_keys=True) + "\n")
@@ -45,7 +44,7 @@ def fresh_output_dir(output_dir: Path) -> Path:
     raise RuntimeError(f"could not allocate fresh Tyr MCP output directory under {output_dir}")
 
 
-def _summary_task_path(task: dict[str, Any], output_dir: Path) -> str:
+def _summary_task_path(task: JsonObject, output_dir: Path) -> str:
     raw_path = task.get("path")
     if raw_path is None:
         return ""
@@ -63,11 +62,11 @@ def write_solvability_summary(
     tool: str,
     status: str,
     output_dir: Path,
-    metadata: dict[str, Any],
-    tasks: list[dict[str, Any]],
+    metadata: JsonObject,
+    tasks: JsonDictList,
     stdout: str = "",
     stderr: str = "",
-) -> dict[str, Any]:
+) -> JsonObject:
     output_dir = fresh_output_dir(output_dir)
     raw_dir = output_dir / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
@@ -76,12 +75,12 @@ def write_solvability_summary(
     with (raw_dir / "stderr.txt").open("x", encoding="utf-8") as fh:
         fh.write(stderr)
 
-    by_status: dict[str, list[dict[str, Any]]] = {}
+    by_status: dict[str, JsonDictList] = {}
     for task in tasks:
         by_status.setdefault(str(task["status"]), []).append(task)
 
     task_dir = output_dir / "tasks"
-    task_items = []
+    task_items: JsonDictList = []
     for index, task in enumerate(tasks, start=1):
         task_id = f"task-{index:03d}"
         task_path = task_dir / f"{task_id}.json"
@@ -179,7 +178,7 @@ def write_solvability_summary(
     }
 
 
-def write_solvability_markdown(path: Path, summary: dict[str, Any]) -> None:
+def write_solvability_markdown(path: Path, summary: JsonObject) -> None:
     lines = [
         f"# {summary['tool']}",
         "",

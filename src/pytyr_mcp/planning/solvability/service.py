@@ -4,7 +4,6 @@ import io
 from contextlib import redirect_stdout
 from datetime import timedelta
 from pathlib import Path
-from typing import Any
 
 from pypddl.formalism import ParserOptions
 from pyyggdrasil.execution import ExecutionContext
@@ -20,6 +19,7 @@ from pytyr.planning.lifted import (
 )
 
 from pytyr_mcp.artifacts import write_solvability_summary
+from pytyr_mcp.json_types import JsonDictList, JsonObject
 from pytyr_mcp.planning.solvability.schemas import ProveSolvabilityOptions
 
 TOOL_NAME = "tyr.planning.prove_solvability"
@@ -33,9 +33,8 @@ def problem_paths(problem_dir: Path) -> list[Path]:
     )
 
 
-def status_name(status: object) -> str:
-    name = getattr(status, "name", None)
-    return str(name if name is not None else status)
+def status_name(status: SearchStatus) -> str:
+    return status.name
 
 
 def _prove_one(
@@ -47,7 +46,7 @@ def _prove_one(
     max_num_states: int,
     max_time_seconds: float,
     include_plan: bool,
-) -> dict[str, Any]:
+) -> JsonObject:
     formalism_task = parser.parse_task(problem_path, parser_options)
     task = Task(formalism_task)
     axiom_evaluator = AxiomEvaluatorFactory().create(task, execution_context)
@@ -72,14 +71,14 @@ def _prove_one(
     }
 
 
-def prove_solvability(options: ProveSolvabilityOptions) -> dict[str, Any]:
+def prove_solvability(options: ProveSolvabilityOptions) -> JsonObject:
     domain_path = Path(options.domain).resolve()
     problem_dir = Path(options.problem_dir).resolve()
     output_dir = Path(options.output_dir).resolve()
     execution_context = ExecutionContext(options.num_threads)
     parser_options = ParserOptions()
     parser = Parser(domain_path, parser_options)
-    tasks = []
+    tasks: JsonDictList = []
     stdout = io.StringIO()
     paths = problem_paths(problem_dir)
     with redirect_stdout(stdout):

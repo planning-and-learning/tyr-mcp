@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, TypeAlias
 
 from fastmcp import FastMCP
 
@@ -10,6 +10,8 @@ from pytyr_mcp.planning.solvability.tools import register_tools as register_solv
 from pytyr_mcp.planning.sample_generator.tools import TOOL_NAME as SAMPLE_GENERATOR_TOOL
 from pytyr_mcp.planning.sample_generator.tools import register_tools as register_sample_generator_tools
 from pytyr_mcp.roles import Role, load_role
+
+ServerInfo: TypeAlias = dict[str, str | list[str]]
 
 
 class Registrar(Protocol):
@@ -32,7 +34,7 @@ def create_server(config: ServerConfig | None = None, role: Role | None = None) 
             register(mcp, config)
 
     @mcp.tool(name="pytyr_mcp.server_info")
-    def server_info() -> dict[str, object]:
+    def server_info() -> ServerInfo:
         return {
             "name": "pytyr-mcp",
             "role": role.name,
