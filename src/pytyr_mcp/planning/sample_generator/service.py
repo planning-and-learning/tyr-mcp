@@ -95,9 +95,9 @@ def load_generator_module(domain_name: str) -> ModuleType:
 
 def load_make_problem(domain_name: str) -> FunctionType:
     module = load_generator_module(domain_name)
-    make_problem = getattr(module, "make_problem", None)
+    make_problem = module.make_problem
     if not isinstance(make_problem, FunctionType):
-        raise AttributeError(f"{get_generator_path(domain_name)} does not define make_problem as a function")
+        raise TypeError(f"{get_generator_path(domain_name)} defines make_problem as {type(make_problem).__name__}, expected function")
     return make_problem
 
 
