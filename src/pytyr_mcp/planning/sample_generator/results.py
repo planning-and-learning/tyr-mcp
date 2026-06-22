@@ -148,7 +148,7 @@ def sample_generator_result(result: SampleGeneratorResult) -> JsonObject:
         "counts": summary["counts"],
         "generated": [item["name"] for item in generated],
         "invalid_count": len(invalid),
-        "note": "Generated PDDL tasks and configs are written under problem_dir/output_dir; start with summary_md/summary_json.",
+        "note": "Generated PDDL tasks and configs are written under problem_dir; start with summary_md/summary_json.",
     }
     primary["prompt_summary"] = prompt_summary
     return {

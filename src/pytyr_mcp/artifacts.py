@@ -108,15 +108,40 @@ def write_solvability_summary(
         "raw_stderr": "raw/stderr.txt",
         "output_dir": output_dir.as_posix(),
     }
-    return {
-        "schema_version": summary["schema_version"],
+    prompt_summary = {
         "tool": tool,
         "status": status,
+        "successful": status == "success",
+        "output_dir": artifacts["output_dir"],
+        "summary_json": artifacts["summary_json"],
+        "summary_md": artifacts["summary_md"],
+        "task_json": artifacts["task_json"],
+        "task_name": task["name"],
+        "task_status": task["status"],
+        "solved": solved,
+        "plan_length": task.get("plan_length"),
+        "note": "Solvability details are written under output_dir; start with summary_md/summary_json.",
+    }
+    primary = {
         "successful": status == "success",
         "task_name": task["name"],
         "task_status": task["status"],
         "solved": solved,
+        "plan_length": task.get("plan_length"),
+        "prompt_summary": prompt_summary,
+    }
+    return {
+        "schema_version": summary["schema_version"],
+        "tool": tool,
+        "status": status,
+        "primary": primary,
+        "summary": summary,
         "artifacts": artifacts,
+        "prompt_summary": prompt_summary,
+        "successful": status == "success",
+        "task_name": task["name"],
+        "task_status": task["status"],
+        "solved": solved,
         "summary_path": artifacts["summary_json"],
         "summary_md_path": artifacts["summary_md"],
         "task_path": artifacts["task_json"],

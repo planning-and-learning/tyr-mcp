@@ -31,9 +31,11 @@ def test_prove_solvability_summary_links_task_file(tmp_path):
     assert result["task_name"] == "p01.pddl"
     assert result["task_status"] == "SOLVED"
     assert result["solved"] is True
-    assert "prompt_summary" not in result
-    assert "primary" not in result
-    assert "summary" not in result
+    assert result["primary"]["successful"] is True
+    assert result["primary"]["prompt_summary"] == result["prompt_summary"]
+    assert result["prompt_summary"]["task_name"] == "p01.pddl"
+    assert result["prompt_summary"]["summary_md"] == "summary.md"
+    assert result["summary"]["task"]["path"] == "task.json"
     assert "task" not in result
     assert "items" not in result
     assert "tasks" not in result

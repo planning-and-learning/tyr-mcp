@@ -31,17 +31,35 @@ If `output_dir` already contains MCP output, the same structure is written under
 
 ## Result Object
 
-`status` is `success` when the task is solved. Otherwise it is `failure`. The immediate result is intentionally compact; detailed structured data lives in `summary.json` and `task.json`.
+`status` is `success` when the task is solved. Otherwise it is `failure`. The immediate result includes compact orchestration fields; detailed structured data lives in `summary.json` and `task.json`.
 
 ```json
 {
   "schema_version": 1,
   "tool": "tyr.planning.prove_solvability",
   "status": "success|failure",
-  "successful": true,
-  "task_name": "p01.pddl",
-  "task_status": "SOLVED",
-  "solved": true,
+  "primary": {
+    "successful": true,
+    "task_name": "p01.pddl",
+    "task_status": "SOLVED",
+    "solved": true,
+    "plan_length": 2,
+    "prompt_summary": {"...": "..."}
+  },
+  "prompt_summary": {
+    "tool": "tyr.planning.prove_solvability",
+    "status": "success|failure",
+    "successful": true,
+    "output_dir": "<output-dir>",
+    "summary_json": "summary.json",
+    "summary_md": "summary.md",
+    "task_json": "task.json",
+    "task_name": "p01.pddl",
+    "task_status": "SOLVED",
+    "solved": true,
+    "plan_length": 2
+  },
+  "summary": {"...": "same data written to summary.json"},
   "artifacts": {
     "summary_json": "summary.json",
     "summary_md": "summary.md",
@@ -50,6 +68,10 @@ If `output_dir` already contains MCP output, the same structure is written under
     "raw_stderr": "raw/stderr.txt",
     "output_dir": "<output-dir>"
   },
+  "successful": true,
+  "task_name": "p01.pddl",
+  "task_status": "SOLVED",
+  "solved": true,
   "summary_path": "summary.json",
   "summary_md_path": "summary.md",
   "task_path": "task.json",

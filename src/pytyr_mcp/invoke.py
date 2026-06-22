@@ -49,17 +49,11 @@ class Args:
             raise TypeError(f"{key} must be a number")
         return float(value)
 
-    def number_alias(self, key: str, alias: str, default: float) -> float:
-        return self.number(key, default) if key in self.values else self.number(alias, default)
-
     def boolean(self, key: str, default: bool) -> bool:
         value = self.value(key, default)
         if not isinstance(value, bool):
             raise TypeError(f"{key} must be a boolean")
         return value
-
-    def boolean_alias(self, key: str, alias: str, default: bool) -> bool:
-        return self.boolean(key, default) if key in self.values else self.boolean(alias, default)
 
     def path(self, key: str) -> Path:
         return Path(self.string(key)).resolve()
@@ -116,8 +110,8 @@ def _solvability(args: Args | JsonObject) -> ToolResult:
             output_dir=args.string("output_dir"),
             num_threads=args.integer("num_threads", 1),
             max_num_states=args.integer("max_num_states", 100_000),
-            max_time_seconds=args.number_alias("max_time_seconds", "max_time", 5.0),
-            include_plans=args.boolean_alias("include_plans", "print_plan", False),
+            max_time_seconds=args.number("max_time_seconds", 5.0),
+            include_plans=args.boolean("include_plans", False),
         )
     )
 
