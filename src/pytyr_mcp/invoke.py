@@ -111,8 +111,8 @@ def _solvability(args: Args | JsonObject) -> ToolResult:
     args = _args(args)
     return prove_solvability(
         ProveSolvabilityOptions(
-            domain=args.string("domain"),
-            problem_dir=args.string("problem_dir"),
+            domain_file=args.string("domain_file"),
+            problem_file=args.string("problem_file"),
             output_dir=args.string("output_dir"),
             num_threads=args.integer("num_threads", 1),
             max_num_states=args.integer("max_num_states", 100_000),

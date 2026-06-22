@@ -13,8 +13,8 @@ def register_tools(mcp: FastMCP, config: ServerConfig) -> None:
 
     @mcp.tool(name=TOOL_NAME)
     def prove_solvability(
-        domain: str,
-        problem_dir: str,
+        domain_file: str,
+        problem_file: str,
         output_dir: str,
         num_threads: int = 1,
         max_num_states: int = 100_000,
@@ -24,8 +24,8 @@ def register_tools(mcp: FastMCP, config: ServerConfig) -> None:
         """Prove PDDL task solvability with pytyr lifted GBFS lazy search and hFF."""
         return run_prove_solvability(
             ProveSolvabilityOptions(
-                domain=domain,
-                problem_dir=problem_dir,
+                domain_file=domain_file,
+                problem_file=problem_file,
                 output_dir=server_output_dir(config.output_root, output_dir).as_posix(),
                 num_threads=num_threads,
                 max_num_states=max_num_states,
