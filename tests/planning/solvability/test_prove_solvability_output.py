@@ -34,8 +34,8 @@ def test_prove_solvability_summary_links_task_file(tmp_path):
     assert result["primary"]["successful"] is True
     assert result["primary"]["prompt_summary"] == result["prompt_summary"]
     assert result["prompt_summary"]["task_name"] == "p01.pddl"
-    assert result["prompt_summary"]["summary_md"] == "summary.md"
-    assert result["summary"]["task"]["path"] == "task.json"
+    assert result["prompt_summary"]["summary_md"] == (tmp_path / "summary.md").as_posix()
+    assert result["summary"]["task"]["path"] == (tmp_path / "task.json").as_posix()
     assert "task" not in result
     assert "items" not in result
     assert "tasks" not in result
@@ -106,4 +106,4 @@ def test_reused_solvability_output_relativizes_absolute_task_path_to_child_run(t
     summary = json.loads((child / "summary.json").read_text(encoding="utf-8"))
     task = json.loads((child / summary["task"]["path"]).read_text(encoding="utf-8"))
     assert second["output_dir"] == child.as_posix()
-    assert task["path"] == "<omitted: outside output_dir>"
+    assert task["path"] == problem.as_posix()

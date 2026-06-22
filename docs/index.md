@@ -23,4 +23,4 @@ Slash roles also accept dotted aliases such as `planning.sample` and `planning.s
 
 All paths are strings. Tools that write artifacts require an `output_dir`. A tool invocation reserves that directory if it is empty; if it already contains prior MCP output, the tool writes to `run-002`, `run-003`, etc. under it.
 
-Tool results always contain `schema_version`, `tool`, `status`, and `artifacts`. `summary.md` is the human-readable entry point. `summary.json` is the structured entry point. Artifact paths are relative to the selected output directory whenever possible. Tools that naturally produce multiple records, such as `tyr.planning.sample_generator`, also expose an `items` list.
+Tool results always contain `schema_version`, `tool`, `status`, and `artifacts`. `summary.md` is the human-readable entry point. `summary.json` is the structured entry point. Artifact paths in result objects are absolute so callers can open them directly from any workspace. Tools that naturally produce multiple records, such as `tyr.planning.sample_generator`, also expose an `items` list.

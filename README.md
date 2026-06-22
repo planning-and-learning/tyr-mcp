@@ -27,5 +27,5 @@ Start with the index for shared output directory conventions. The per-tool pages
 
 Sampling and solvability tools write layered artifacts under the requested `output_dir`. If that directory already contains output, the tool allocates a numbered child directory such as `run-002` instead of overwriting.
 
-Sampling writes a copied `domain.pddl`, a generated problem batch directory, `summary.json`, and `summary.md`. Solvability is single-task: it writes `task.json`, `summary.json`, `summary.md`, and raw stdout/stderr logs. Results include `primary` orchestration fields, a structured `summary`, and `artifacts` with relative paths to written files. List-producing tools, such as sampling, also expose `items`. See [`docs/index.md`](docs/index.md) for shared conventions and the per-tool pages for argument tables.
+Sampling writes a copied `domain.pddl`, a generated problem batch directory, `summary.json`, and `summary.md`. Solvability is single-task: it writes `task.json`, `summary.json`, `summary.md`, and raw stdout/stderr logs. Results include `primary` orchestration fields, a structured `summary`, and `artifacts` with absolute paths to written files. List-producing tools, such as sampling, also expose `items`. See [`docs/index.md`](docs/index.md) for shared conventions and the per-tool pages for argument tables.
 

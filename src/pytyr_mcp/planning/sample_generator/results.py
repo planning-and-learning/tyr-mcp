@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 from pytyr_mcp.json_types import JsonDictList, JsonObject, JsonValue
-from pytyr_mcp.paths import relative_to
 from pytyr_mcp.planning.sample_generator.service import SampleGeneratorResult
 
 
@@ -85,7 +84,7 @@ def sample_generator_result(result: SampleGeneratorResult) -> JsonObject:
             "kind": "generated_problem",
             "index": item.index,
             "name": item.path.name,
-            "path": relative_to(item.path, output_dir),
+            "path": item.path.resolve().as_posix(),
             "config": item.config,
         }
         for item in result.generated
@@ -131,10 +130,10 @@ def sample_generator_result(result: SampleGeneratorResult) -> JsonObject:
         "domain_path": result.domain_path.as_posix(),
         "problem_dir": result.problem_dir.as_posix(),
         "generator_path": result.generator_path.as_posix(),
-        "summary_json": relative_to(summary_json, output_dir),
-        "summary_md": relative_to(summary_md, output_dir),
-        "configs_json": relative_to(result.problem_dir / "configs.json", output_dir),
-        "output_dir": output_dir.as_posix(),
+        "summary_json": summary_json.resolve().as_posix(),
+        "summary_md": summary_md.resolve().as_posix(),
+        "configs_json": (result.problem_dir / "configs.json").resolve().as_posix(),
+        "output_dir": output_dir.resolve().as_posix(),
     }
     prompt_summary = {
         "tool": "tyr.planning.sample_generator",

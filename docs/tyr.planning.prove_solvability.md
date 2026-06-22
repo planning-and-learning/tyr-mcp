@@ -51,8 +51,8 @@ If `output_dir` already contains MCP output, the same structure is written under
     "status": "success|failure",
     "successful": true,
     "output_dir": "<output-dir>",
-    "summary_json": "summary.json",
-    "summary_md": "summary.md",
+    "summary_json": "<output-dir>/summary.json",
+    "summary_md": "<output-dir>/summary.md",
     "task_json": "task.json",
     "task_name": "p01.pddl",
     "task_status": "SOLVED",
@@ -61,8 +61,8 @@ If `output_dir` already contains MCP output, the same structure is written under
   },
   "summary": {"...": "same data written to summary.json"},
   "artifacts": {
-    "summary_json": "summary.json",
-    "summary_md": "summary.md",
+    "summary_json": "<output-dir>/summary.json",
+    "summary_md": "<output-dir>/summary.md",
     "task_json": "task.json",
     "raw_stdout": "raw/stdout.txt",
     "raw_stderr": "raw/stderr.txt",
@@ -74,7 +74,7 @@ If `output_dir` already contains MCP output, the same structure is written under
   "solved": true,
   "summary_path": "summary.json",
   "summary_md_path": "summary.md",
-  "task_path": "task.json",
+  "task_path": "<output-dir>/task.json",
   "output_dir": "<output-dir>"
 }
 ```
@@ -98,7 +98,7 @@ If `output_dir` already contains MCP output, the same structure is written under
     "name": "p01.pddl",
     "status": "SOLVED",
     "solved": true,
-    "path": "task.json",
+    "path": "<output-dir>/task.json",
     "plan_length": 2
   },
   "raw": {"stdout_path": "raw/stdout.txt", "stderr_path": "raw/stderr.txt"}

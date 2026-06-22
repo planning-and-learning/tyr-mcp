@@ -59,7 +59,7 @@ If `<batch-name>/` already exists inside the selected output directory, the batc
         "kind": "generated_problem",
         "index": 1,
         "name": "<batch-name>-001.pddl",
-        "path": "<batch-name>/<batch-name>-001.pddl",
+        "path": "<output-dir>/<batch-name>/<batch-name>-001.pddl",
         "config": {}
       }
     ],
@@ -68,9 +68,9 @@ If `<batch-name>/` already exists inside the selected output directory, the batc
   "artifacts": {
     "domain_path": "<output-dir>/domain.pddl",
     "problem_dir": "<output-dir>/<batch-name>",
-    "summary_json": "summary.json",
-    "summary_md": "summary.md",
-    "configs_json": "<batch-name>/configs.json",
+    "summary_json": "<output-dir>/summary.json",
+    "summary_md": "<output-dir>/summary.md",
+    "configs_json": "<output-dir>/<batch-name>/configs.json",
     "output_dir": "<output-dir>"
   },
   "items": [
@@ -78,7 +78,7 @@ If `<batch-name>/` already exists inside the selected output directory, the batc
       "kind": "generated_problem",
       "index": 1,
       "name": "<batch-name>-001.pddl",
-      "path": "<batch-name>/<batch-name>-001.pddl",
+      "path": "<output-dir>/<batch-name>/<batch-name>-001.pddl",
       "config": {}
     }
   ],

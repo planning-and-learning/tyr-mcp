@@ -3,8 +3,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from pytyr_mcp.json_types import JsonObject, JsonValue
-from pytyr_mcp.paths import relative_to
-
 
 def write_json(path: Path, data: JsonValue) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -48,13 +46,7 @@ def _summary_task_path(task: JsonObject, output_dir: Path) -> str:
     raw_path = task.get("path")
     if raw_path is None:
         return ""
-    path = Path(str(raw_path))
-    if not path.is_absolute():
-        return path.as_posix()
-    try:
-        return path.relative_to(output_dir).as_posix()
-    except ValueError:
-        return "<omitted: outside output_dir>"
+    return Path(str(raw_path)).resolve().as_posix()
 
 
 def write_solvability_summary(
@@ -90,23 +82,23 @@ def write_solvability_summary(
             "name": task["name"],
             "status": task["status"],
             "solved": solved,
-            "path": "task.json",
+            "path": (output_dir / "task.json").resolve().as_posix(),
             "plan_length": task.get("plan_length"),
         },
         "raw": {
-            "stdout_path": "raw/stdout.txt",
-            "stderr_path": "raw/stderr.txt",
+            "stdout_path": (output_dir / "raw" / "stdout.txt").resolve().as_posix(),
+            "stderr_path": (output_dir / "raw" / "stderr.txt").resolve().as_posix(),
         },
     }
     write_json(output_dir / "summary.json", summary)
     write_solvability_markdown(output_dir / "summary.md", summary)
     artifacts = {
-        "summary_json": relative_to(output_dir / "summary.json", output_dir),
-        "summary_md": relative_to(output_dir / "summary.md", output_dir),
-        "task_json": "task.json",
-        "raw_stdout": "raw/stdout.txt",
-        "raw_stderr": "raw/stderr.txt",
-        "output_dir": output_dir.as_posix(),
+        "summary_json": (output_dir / "summary.json").resolve().as_posix(),
+        "summary_md": (output_dir / "summary.md").resolve().as_posix(),
+        "task_json": (output_dir / "task.json").resolve().as_posix(),
+        "raw_stdout": (output_dir / "raw" / "stdout.txt").resolve().as_posix(),
+        "raw_stderr": (output_dir / "raw" / "stderr.txt").resolve().as_posix(),
+        "output_dir": output_dir.resolve().as_posix(),
     }
     prompt_summary = {
         "tool": tool,
@@ -145,7 +137,7 @@ def write_solvability_summary(
         "summary_path": artifacts["summary_json"],
         "summary_md_path": artifacts["summary_md"],
         "task_path": artifacts["task_json"],
-        "output_dir": output_dir.as_posix(),
+        "output_dir": output_dir.resolve().as_posix(),
     }
 
 

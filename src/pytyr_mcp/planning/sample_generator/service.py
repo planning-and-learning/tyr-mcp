@@ -13,7 +13,6 @@ from types import FunctionType, ModuleType
 
 from pytyr_mcp.artifacts import fresh_output_dir
 from pytyr_mcp.json_types import JsonObject, JsonValue
-from pytyr_mcp.paths import relative_to
 
 
 _BATCH_NAME_RE = re.compile(r"[^A-Za-z0-9_-]+")
@@ -186,7 +185,7 @@ def sample_generator(options: SampleGeneratorOptions) -> SampleGeneratorResult:
         "generator_path": str(generator_path),
         "signature": signature,
         "generated": [
-            {"index": problem.index, "path": relative_to(problem.path, output_dir), "config": problem.config}
+            {"index": problem.index, "path": problem.path.resolve().as_posix(), "config": problem.config}
             for problem in generated
         ],
         "invalid": [

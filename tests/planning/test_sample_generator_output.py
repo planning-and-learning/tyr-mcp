@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 import json
 
 from pytyr_mcp.planning.sample_generator.results import sample_generator_result
@@ -41,21 +42,21 @@ def test_sample_generator_result_writes_summary_and_indexes_artifacts(tmp_path):
     assert result["status"] == "failure"
     assert result["primary"]["generated_count"] == 1
     assert result["primary"]["invalid_count"] == 1
-    assert result["artifacts"]["summary_json"] == "summary.json"
-    assert result["artifacts"]["summary_md"] == "summary.md"
-    assert result["artifacts"]["configs_json"] == "batch/configs.json"
-    assert (output_dir / result["artifacts"]["summary_json"]).is_file()
-    assert (output_dir / result["artifacts"]["summary_md"]).is_file()
+    assert result["artifacts"]["summary_json"] == (output_dir / "summary.json").as_posix()
+    assert result["artifacts"]["summary_md"] == (output_dir / "summary.md").as_posix()
+    assert result["artifacts"]["configs_json"] == (problem_dir / "configs.json").as_posix()
+    assert Path(result["artifacts"]["summary_json"]).is_file()
+    assert Path(result["artifacts"]["summary_md"]).is_file()
 
     summary = json.loads((output_dir / "summary.json").read_text(encoding="utf-8"))
     assert summary["counts"] == {"generated": 1, "invalid": 1}
-    assert summary["generated"][0]["path"] == "batch/batch-001.pddl"
+    assert summary["generated"][0]["path"] == pddl.as_posix()
     assert "absolute_path" not in summary["generated"][0]
     assert result["items"] == summary["generated"]
     assert result["diagnostics"] == summary["invalid"]
     assert result["primary"]["prompt_summary"] == result["prompt_summary"]
     assert result["prompt_summary"]["counts"] == {"generated": 1, "invalid": 1}
-    assert result["prompt_summary"]["summary_md"] == "summary.md"
+    assert result["prompt_summary"]["summary_md"] == (output_dir / "summary.md").as_posix()
     assert result["prompt_summary"]["generated"] == ["batch-001.pddl"]
     assert "items" not in result["prompt_summary"]
 
@@ -213,7 +214,7 @@ def test_sample_generator_uses_slugged_batch_names(monkeypatch, tmp_path):
 
     assert result.problem_dir == output_dir / "bad_name"
     assert result.generated[0].path == output_dir / "bad_name" / "bad_name-001.pddl"
-    assert payload["generated"][0]["path"] == "bad_name/bad_name-001.pddl"
+    assert payload["generated"][0]["path"] == (output_dir / "bad_name" / "bad_name-001.pddl").as_posix()
     configs = json.loads((output_dir / "bad_name" / "configs.json").read_text(encoding="utf-8"))
-    assert configs["generated"][0]["path"] == "bad_name/bad_name-001.pddl"
+    assert configs["generated"][0]["path"] == (output_dir / "bad_name" / "bad_name-001.pddl").as_posix()
     assert not (tmp_path / "bad").exists()
