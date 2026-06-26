@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pytyr-mcp"
-version = "0.0.5"
+version = "0.0.6"
 description = "MCP server exposing pytyr planning tools for planning-and-learning agents"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -13,7 +13,7 @@ authors = [
 ]
 dependencies = [
     "fastmcp>=2",
-    "pytyr>=0.0.25,<0.1",
+    "pytyr>=0.0.26,<0.1",
 ]
 
 [project.optional-dependencies]
