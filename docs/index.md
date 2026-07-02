@@ -1,26 +1,41 @@
-# pytyr-mcp Tool Docs
+# pytyr-mcp Docs
 
-This directory documents the JSON calling arguments and normalized output structure for each exposed `pytyr-mcp` planning tool.
+Typed Python API with in-memory domains, task contexts, search results, and explicit result dumping.
 
-## Tools
+## Current Interface
 
+- [Python API](api.md)
+- [Contexts](context.md): `create_domain_context(...)`, `create_task_context(...)`
+- [Dumping](dumping.md): result `dump(...)`, `DumpFormat`, `DumpResult`
+- [Find Satisficing Plan](tyr.planning.find_satisficing_plan.md): `find_satisficing_plan(...)`
+
+```python
+from pytyr_mcp import (
+    create_domain_context,
+    create_task_context,
+    find_satisficing_plan,
+)
+
+domain = create_domain_context("domain.pddl")
+task = create_task_context(domain, "problem.pddl")
+result = find_satisficing_plan(task)
+dump = result.dump("artifacts/find-plan")
+```
+
+Planning returns typed result objects. Dump only when another process needs files.
+
+## Workflow Reference
+
+- [`tyr.planning.find_satisficing_plan`](tyr.planning.find_satisficing_plan.md): `find_satisficing_plan(...)`, optional `result.dump(...)`
+- [`tyr.planning.prove_solvability`](tyr.planning.prove_solvability.md): raw-file workflow that writes artifacts directly
 - [`tyr.planning.describe_generator`](tyr.planning.describe_generator.md)
 - [`tyr.planning.sample_generator`](tyr.planning.sample_generator.md)
-- [`tyr.planning.prove_solvability`](tyr.planning.prove_solvability.md)
 
 ## Roles
 
-Tools are role-gated by `PYTYR_MCP_ROLE`:
-
-- `planning/sample`: `tyr.planning.describe_generator`, `tyr.planning.sample_generator`
-- `planning/solvability`: `tyr.planning.prove_solvability`
-- `planning`: all planning tools
-- `all`: all tools exposed by this server
+- `planning/sample`: generator inspection and sampling workflows.
+- `planning/solvability`: plan-finding workflow.
+- `planning`: all planning workflows.
+- `all`: all tools exposed by this package.
 
 Slash roles also accept dotted aliases such as `planning.sample` and `planning.solvability`.
-
-## Shared Output Conventions
-
-All paths are strings. Tools that write artifacts require an `output_dir`. A tool invocation reserves that directory if it is empty; if it already contains prior MCP output, the tool writes to `run-002`, `run-003`, etc. under it.
-
-Tool results always contain `schema_version`, `tool`, `status`, and `artifacts`. `summary.md` is the human-readable entry point. `summary.json` is the structured entry point. Artifact paths in result objects are absolute so callers can open them directly from any workspace. Tools that naturally produce multiple records, such as `tyr.planning.sample_generator`, also expose an `items` list.
