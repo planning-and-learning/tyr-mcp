@@ -6,12 +6,14 @@ from pathlib import Path
 import pytyr_mcp as public
 from pytyr.planning import SearchStatus
 
-from pytyr_mcp import DumpFormat, FindSatisficingPlanResult
+from pytyr_mcp import DumpFormat, FindSatisficingPlanResult, PROVE_SEARCH_BUDGET, SearchBudget
 
 
 def test_public_api_exports_context_and_plan_search_names() -> None:
     assert public.DumpFormat is DumpFormat
     assert public.FindSatisficingPlanResult is FindSatisficingPlanResult
+    assert public.SearchBudget is SearchBudget
+    assert public.PROVE_SEARCH_BUDGET is PROVE_SEARCH_BUDGET
     assert callable(public.create_domain_context)
     assert callable(public.create_task_context)
     assert callable(public.find_satisficing_plan)

@@ -1,6 +1,6 @@
 # pytyr-mcp Docs
 
-Typed Python API with in-memory domains, task contexts, search results, and explicit result dumping.
+Typed Python API with caller-managed domains, task contexts, search results, and explicit result dumping.
 
 ## Current Interface
 
@@ -27,15 +27,3 @@ Planning returns typed result objects. Dump only when another process needs file
 ## Workflow Reference
 
 - [`tyr.planning.find_satisficing_plan`](tyr.planning.find_satisficing_plan.md): `find_satisficing_plan(...)`, optional `result.dump(...)`
-- [`tyr.planning.prove_solvability`](tyr.planning.prove_solvability.md): raw-file workflow that writes artifacts directly
-- [`tyr.planning.describe_generator`](tyr.planning.describe_generator.md)
-- [`tyr.planning.sample_generator`](tyr.planning.sample_generator.md)
-
-## Roles
-
-- `planning/sample`: generator inspection and sampling workflows.
-- `planning/solvability`: plan-finding workflow.
-- `planning`: all planning workflows.
-- `all`: all tools exposed by this package.
-
-Slash roles also accept dotted aliases such as `planning.sample` and `planning.solvability`.

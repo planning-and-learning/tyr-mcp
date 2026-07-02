@@ -5,8 +5,7 @@
 ```python
 result = find_satisficing_plan(
     task_context,
-    max_num_states=100_000,
-    max_time_seconds=5.0,
+    search_budget=SearchBudget(100_000, 5.0),
 )
 ```
 
@@ -17,8 +16,7 @@ Runs lifted GBFS lazy search with hFF on one parsed task and returns the first s
 | Name | Type | Default | Description |
 |---|---|---|---|
 | `task_context` | `TaskContext` | required | Parsed task context returned by `create_task_context(...)`; contains its parent `DomainContext`. |
-| `max_num_states` | `int` | `100_000` | Search state budget. |
-| `max_time_seconds` | `float` | `5.0` | Search wall-time budget in seconds. |
+| `search_budget` | `SearchBudget` | `PROVE_SEARCH_BUDGET` | Search state and wall-time budget. Both fields must be non-`None`. |
 
 ## Result Object
 

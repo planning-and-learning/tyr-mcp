@@ -16,6 +16,7 @@ from pytyr.planning.lifted import (
 )
 
 from pytyr_mcp.context import TaskContext
+from pytyr_mcp.defaults import PROVE_SEARCH_BUDGET, SearchBudget
 from pytyr_mcp.dumping import DumpFormat, DumpResult, allocate_output_dir
 from pytyr_mcp.json_types import JsonObject
 
@@ -105,11 +106,16 @@ def next_result_id(context: TaskContext) -> str:
     return f"result_{index:06d}"
 
 
+def _required_budget_values(budget: SearchBudget, *, name: str) -> tuple[int, float]:
+    if budget.max_num_states is None or budget.max_time_seconds is None:
+        raise ValueError(f"{name} requires max_num_states and max_time_seconds")
+    return budget.max_num_states, budget.max_time_seconds
+
+
 def find_satisficing_plan(
     context: TaskContext,
     *,
-    max_num_states: int = 100_000,
-    max_time_seconds: float = 5.0,
+    search_budget: SearchBudget = PROVE_SEARCH_BUDGET,
 ) -> FindSatisficingPlanResult:
     axiom_evaluator = AxiomEvaluatorFactory().create(context.task, context.execution_context)
     state_repository = StateRepositoryFactory().create(context.task, axiom_evaluator)
@@ -118,6 +124,9 @@ def find_satisficing_plan(
     )
     heuristic = FFRPGHeuristic(context.task, context.execution_context)
 
+    max_num_states, max_time_seconds = _required_budget_values(
+        search_budget, name="find_satisficing_plan search_budget"
+    )
     search_options = gbfs_lazy.Options()
     search_options.max_num_states = max_num_states
     search_options.max_time = timedelta(seconds=max_time_seconds)

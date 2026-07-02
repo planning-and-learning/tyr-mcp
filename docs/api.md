@@ -1,9 +1,10 @@
 # Python API
 
-Typed API for keeping parsing, task setup, search results, and dump decisions in memory.
+Typed API for keeping parsing, task setup, search results, and dump decisions under caller control.
 
 ```text
 src/pytyr_mcp/
+  callsite.py         # public convenience functions
   context.py          # DomainContext and TaskContext
   dumping.py          # DumpFormat and DumpResult
   planning/search.py  # find_satisficing_plan and result type
@@ -17,6 +18,7 @@ Callers own all state. `TaskContext` stores the `DomainContext` that created it.
 ```python
 from pytyr_mcp import (
     DumpFormat,
+    SearchBudget,
     create_domain_context,
     create_task_context,
     find_satisficing_plan,
@@ -24,7 +26,7 @@ from pytyr_mcp import (
 
 domain = create_domain_context("domain.pddl")
 task = create_task_context(domain, "problem.pddl")
-result = find_satisficing_plan(task, max_num_states=100_000, max_time_seconds=5.0)
+result = find_satisficing_plan(task, search_budget=SearchBudget(100_000, 5.0))
 
 if result.solved:
     plan = result.plan
@@ -36,15 +38,9 @@ dump = result.dump(
 )
 ```
 
-## References
-
-- [Contexts](context.md): `create_domain_context(...)`, `create_task_context(...)`
-- [Dumping](dumping.md): result `dump(...)`, `DumpFormat`, `DumpResult`
-- [Find Satisficing Plan](tyr.planning.find_satisficing_plan.md): current planning call
-
 ## Planning
 
-- `find_satisficing_plan(task_context, max_num_states=100_000, max_time_seconds=5.0, ...)`
+- `find_satisficing_plan(task_context, search_budget=PROVE_SEARCH_BUDGET)`
 
 `find_satisficing_plan(...)` runs lifted GBFS lazy search with hFF. Success means a satisficing plan was found; failure means no plan was found within the search status/budgets.
 
