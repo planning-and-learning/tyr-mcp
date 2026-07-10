@@ -27,10 +27,3 @@ class Keys(StrEnum):
     DOMAIN_PATH = "domain_path"
     PLAN_PATH = "plan_path"
     TASK_PATH = "task_path"
-
-
-class TableColumns(StrEnum):
-    """Columns used only by rendered tables."""
-
-    FIELD = "Field"
-    VALUE = "Value"

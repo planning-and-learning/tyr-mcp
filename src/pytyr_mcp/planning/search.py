@@ -20,7 +20,7 @@ from pytyr_mcp.defaults import PROVE_SEARCH_BUDGET, SearchBudget
 from pytyr_mcp.dumping import DumpResult, allocate_output_dir
 from pytyr_mcp.enums import DumpFormat, RunStatus
 from pytyr_mcp.json_types import JsonObject
-from pytyr_mcp.keys import Keys, TableColumns
+from pytyr_mcp.keys import Keys
 
 
 class PlanLike(Protocol):
@@ -253,7 +253,7 @@ def write_summary_markdown(
         "",
         "## Plan Metadata",
         "",
-        f"| {TableColumns.FIELD} | {TableColumns.VALUE} |",
+        "| Field | Value |",
         "|---|---|",
         f"| Task | `{result.context.problem_file.name}` |",
         f"| Search status | `{result.search_status.name}` |",
