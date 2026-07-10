@@ -17,8 +17,10 @@ from pytyr.planning.lifted import (
 
 from pytyr_mcp.context import TaskContext
 from pytyr_mcp.defaults import PROVE_SEARCH_BUDGET, SearchBudget
-from pytyr_mcp.dumping import DumpFormat, DumpResult, allocate_output_dir
+from pytyr_mcp.dumping import DumpResult, allocate_output_dir
+from pytyr_mcp.enums import DumpFormat, RunStatus
 from pytyr_mcp.json_types import JsonObject
+from pytyr_mcp.keys import Keys, TableColumns
 
 
 class PlanLike(Protocol):
@@ -65,8 +67,8 @@ class FindSatisficingPlanResult:
     plan_cost: float | None
 
     @property
-    def status(self) -> str:
-        return "success" if self.solved else "failure"
+    def status(self) -> RunStatus:
+        return RunStatus.SUCCESS if self.solved else RunStatus.FAILURE
 
     def dump(
         self,
@@ -153,22 +155,23 @@ def result_json(
     plan_path: Path | None,
 ) -> tuple[JsonObject, JsonObject]:
     task: JsonObject = {
-        "schema_version": 1,
-        "name": result.context.problem_file.name,
-        "path": result.context.problem_file.as_posix(),
-        "status": result.search_status.name,
-        "solved": result.solved,
-        "plan_length": result.plan_length,
-        "plan_cost": result.plan_cost,
-        "plan_path": None if plan_path is None else plan_path.resolve().as_posix(),
+        Keys.SCHEMA_VERSION: 1,
+        Keys.NAME: result.context.problem_file.name,
+        Keys.DOMAIN_PATH: result.context.domain_context.domain_file.as_posix(),
+        Keys.TASK_PATH: result.context.problem_file.as_posix(),
+        Keys.STATUS: result.search_status.name,
+        Keys.SOLVED: result.solved,
+        Keys.PLAN_LENGTH: result.plan_length,
+        Keys.PLAN_COST: result.plan_cost,
+        Keys.PLAN_PATH: None if plan_path is None else plan_path.resolve().as_posix(),
     }
     result_payload: JsonObject = {
-        "schema_version": 1,
-        "id": result.id,
-        "tool": "tyr.planning.find_satisficing_plan",
-        "status": result.status,
-        "context": {"id": result.context.id, "index": result.context.index},
-        "task": task,
+        Keys.SCHEMA_VERSION: 1,
+        Keys.ID: result.id,
+        Keys.TOOL: "tyr.planning.find_satisficing_plan",
+        Keys.STATUS: result.status,
+        Keys.CONTEXT: {Keys.ID: result.context.id, Keys.INDEX: result.context.index},
+        Keys.TASK: task,
     }
     return result_payload, task
 
@@ -250,7 +253,7 @@ def write_summary_markdown(
         "",
         "## Plan Metadata",
         "",
-        "| Field | Value |",
+        f"| {TableColumns.FIELD} | {TableColumns.VALUE} |",
         "|---|---|",
         f"| Task | `{result.context.problem_file.name}` |",
         f"| Search status | `{result.search_status.name}` |",

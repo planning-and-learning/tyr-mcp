@@ -55,6 +55,8 @@ output_dir/
 
 | Field | Meaning |
 |---|---|
+| `domain_path` | Absolute path to the parsed domain file. |
+| `task_path` | Absolute path to the parsed problem/task file. |
 | `status` | Raw pytyr search status, such as `SOLVED` or `TIMEOUT`. |
 | `solved` | `true` when a plan was found. |
 | `plan_length` | Number of plan steps, or `null` when no plan exists. |

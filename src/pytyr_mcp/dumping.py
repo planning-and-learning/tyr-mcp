@@ -1,15 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import StrEnum
 from pathlib import Path
 
 from pytyr_mcp.artifacts import fresh_output_dir
-
-
-class DumpFormat(StrEnum):
-    JSON = "json"
-    MD = "md"
+from pytyr_mcp.enums import DumpFormat as DumpFormat
 
 
 @dataclass(frozen=True, slots=True)

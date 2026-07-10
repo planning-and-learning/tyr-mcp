@@ -14,7 +14,8 @@ from pytyr_mcp.defaults import (
     PROVE_SEARCH_BUDGET,
     SearchBudget,
 )
-from pytyr_mcp.dumping import DumpFormat, DumpResult
+from pytyr_mcp.dumping import DumpResult
+from pytyr_mcp.enums import DumpFormat
 from pytyr_mcp.planning.search import FindSatisficingPlanResult
 
 __version__ = "0.0.7"

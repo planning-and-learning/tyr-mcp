@@ -14,3 +14,4 @@ PROVE_SEARCH_BUDGET = SearchBudget(max_num_states=100_000, max_time_seconds=5.0)
 PLAN_TRACE_BUDGET = SearchBudget(max_num_states=1_000_000, max_time_seconds=10.0)
 CLASSIFIER_PROOF_BUDGET = SearchBudget(max_num_states=1_000_000, max_time_seconds=None)
 CLASSIFIER_MISTAKE_LIMIT = 5
+RESERVATION_MARKER = ".pytyr-mcp-output"

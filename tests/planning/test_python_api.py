@@ -64,6 +64,9 @@ def test_find_satisficing_plan_result_dump_writes_requested_files(tmp_path: Path
     task_payload = json.loads((tmp_path / "artifacts" / "task.json").read_text(encoding="utf-8"))
     assert payload["tool"] == "tyr.planning.find_satisficing_plan"
     assert payload["task"]["solved"] is True
+    assert task_payload["domain_path"] == domain_path.as_posix()
+    assert task_payload["task_path"] == problem_path.as_posix()
+    assert "path" not in task_payload
     assert task_payload["plan_path"] == (tmp_path / "artifacts" / "plan.txt").as_posix()
     plan_text = (tmp_path / "artifacts" / "plan.txt").read_text(encoding="utf-8")
     assert "[trace]" in plan_text

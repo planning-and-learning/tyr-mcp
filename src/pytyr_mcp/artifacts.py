@@ -3,10 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from pytyr_mcp.defaults import RESERVATION_MARKER
 from pytyr_mcp.json_types import JsonValue
-
-
-RESERVATION_MARKER = ".pytyr-mcp-output"
 
 
 def write_json(path: Path, data: JsonValue) -> None:
