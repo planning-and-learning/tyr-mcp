@@ -23,3 +23,8 @@ def _project_table() -> JsonObject:
 
 def test_package_has_no_console_scripts() -> None:
     assert "scripts" not in _project_table()
+
+
+def test_package_declares_typed_api() -> None:
+    marker = Path(__file__).resolve().parents[1] / "src" / "pytyr_mcp" / "py.typed"
+    assert marker.is_file()
