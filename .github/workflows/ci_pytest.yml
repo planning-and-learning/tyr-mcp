@@ -31,8 +31,8 @@ jobs:
         env:
           PIP_NO_CACHE_DIR: 1
 
-      - name: Import package
-        run: python -c "import pytyr_mcp; print(pytyr_mcp.__version__)"
+      - name: Check package version
+        run: python -c "import importlib.metadata, pytyr_mcp; assert pytyr_mcp.__version__ == importlib.metadata.version('pytyr-mcp'); print(pytyr_mcp.__version__)"
 
       - name: Test
         run: |

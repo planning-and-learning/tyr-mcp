@@ -17,7 +17,7 @@ from pytyr_mcp.defaults import (
 from pytyr_mcp.dumping import DumpFormat, DumpResult
 from pytyr_mcp.planning.search import FindSatisficingPlanResult
 
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 
 __all__ = [
     "__version__",
