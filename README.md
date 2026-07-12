@@ -2,7 +2,7 @@
 
 `pytyr-mcp` is a typed Python API for planning-and-learning agents. Callers keep parsed domains, task contexts, and search results in memory; filesystem artifacts are written only at the dump boundary.
 
-Current release: `0.0.7`.
+Current release: `0.0.8`.
 
 See [`docs/api.md`](docs/api.md) for the API and [`docs/index.md`](docs/index.md) for workflow/output docs.
 
