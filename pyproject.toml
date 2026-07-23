@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pytyr-mcp"
-version = "0.0.9"
+version = "0.0.10"
 description = "Typed pytyr planning API for planning-and-learning agents"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -12,7 +12,7 @@ authors = [
     {name = "Dominik Drexler"},
 ]
 dependencies = [
-    "pytyr>=0.0.31,<0.1",
+    "pytyr>=0.0.32,<0.1",
 ]
 
 [project.optional-dependencies]

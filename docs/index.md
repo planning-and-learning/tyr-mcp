@@ -2,7 +2,7 @@
 
 Typed Python API with caller-managed domains, task contexts, search results, and explicit result dumping.
 
-Current release: `0.0.9`.
+Current release: `0.0.10`.
 
 ## Current Interface
 
